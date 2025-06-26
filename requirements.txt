@@ -1,7 +1,6 @@
 python-dotenv==1.0.0
 requests==2.31.0
 beautifulsoup4==4.12.2
-schedule==1.2.0
 python-telegram-bot==20.7
 selenium==4.16.0
 webdriver-manager==4.0.1
