@@ -1,6 +1,4 @@
 import logging
-import schedule
-import time
 import asyncio
 from parsers.freelance_ru import FreelanceRuParser
 from parsers.fl_ru import FLRuParser
@@ -83,8 +81,5 @@ async def main():
         await asyncio.sleep(PARSING_INTERVAL * 60)
 
 if __name__ == "__main__":
-    # Старая синхронная версия (можно оставить для совместимости)
-    schedule.every(PARSING_INTERVAL).minutes.do(job)
-    
-    # Новая асинхронная версия
+    # Запускаем асинхронную версию по умолчанию
     asyncio.run(main())
