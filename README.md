@@ -23,7 +23,7 @@ job_finder/
 ├── parsers/             # Парсеры для разных сайтов
 │   ├── fl_ru.py        # Парсинг fl.ru
 │   ├── freelance_ru.py # Парсинг freelance.ru
-│   └── hh_ru.py        # Парсинг hh.ru
+│   └── kwork_ru.py     # Парсинг kwork.ru
 ├── utils/              # Утилиты
 │   ├── notifier.py     # Отправка сообщений
 │   └── keywords.py     # Список ключевых слов
