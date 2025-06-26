@@ -21,7 +21,7 @@ class TestFreelanceRuParser(unittest.TestCase):
                 # Проверяем, что результат - это список словарей с ожидаемыми ключами
                 if result:  # если список не пустой
                     self.assertIn('title', result[0])
-                    self.assertIn('url', result[0])
+                    self.assertIn('link', result[0])
             except aiohttp.ClientConnectorError as e:
                 self.skipTest(f"Не удалось подключиться к серверу: {e}")
             except Exception as e:
