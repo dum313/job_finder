@@ -75,22 +75,38 @@ class KworkRuParser(BaseParser):
             self.logger.error(f"Ошибка парсера: {e}")
             raise
 
+    def _is_relevant(self, text: str) -> bool:
+        """Проверяет текст на соответствие ключевым словам"""
+        text = text.lower()
+        return (
+            any(keyword in text for keyword in KEYWORDS)
+            and not any(exclude in text for exclude in EXCLUDE_WORDS)
+        )
+
     async def _async_parse_response(self, html):
         soup = BeautifulSoup(html, 'html.parser')
         projects = []
-        
+
         for card in soup.select('.card'):
             try:
                 title = card.select_one('.card__title a')
-                if title and self._is_relevant(title.text):
+                desc = card.select_one('.card__description')
+                price = card.select_one('.card__price')
+
+                text = title.text if title else ''
+                if desc:
+                    text += ' ' + desc.text
+
+                if title and self._is_relevant(text):
                     projects.append({
                         'title': title.text.strip(),
                         'link': self.base_url + title['href'],
-                        'price': card.select_one('.card__price').text.strip()
+                        'description': desc.text.strip() if desc else '',
+                        'price': price.text.strip() if price else "Цена не указана"
                     })
             except Exception as e:
                 self.logger.error(f"Ошибка обработки проекта: {e}")
-        
+
         return projects
 
     async_parse = async_find_projects  # Алиас для совместимости
