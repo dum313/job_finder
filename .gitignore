@@ -1,0 +1,22 @@
+# Виртуальное окружение
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Файлы логирования
+parser.log
+
+# Файлы конфигурации
+.env
+
+# Файлы IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Файлы сборки
+build/
+dist/
+*.egg-info/
