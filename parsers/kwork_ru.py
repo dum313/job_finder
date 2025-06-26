@@ -67,21 +67,16 @@ class KworkRuParser(BaseParser):
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=HEADERS, ssl=ssl_context) as response:
                     if response.status == 200:
-                        return await self._async_parse_response(await response.text())
+                        projects = await self._async_parse_response(await response.text())
+                        filtered = self._filter_projects(projects, KEYWORDS, EXCLUDE_WORDS)
+                        self._log_projects(filtered)
+                        return filtered
                     else:
                         self.logger.error(f"Ошибка при получении данных: {response.status}")
                         return []
         except Exception as e:
             self.logger.error(f"Ошибка парсера: {e}")
             raise
-
-    def _is_relevant(self, text: str) -> bool:
-        """Проверяет текст на соответствие ключевым словам"""
-        text = text.lower()
-        return (
-            any(keyword in text for keyword in KEYWORDS)
-            and not any(exclude in text for exclude in EXCLUDE_WORDS)
-        )
 
     async def _async_parse_response(self, html):
         soup = BeautifulSoup(html, 'html.parser')
@@ -93,11 +88,7 @@ class KworkRuParser(BaseParser):
                 desc = card.select_one('.card__description')
                 price = card.select_one('.card__price')
 
-                text = title.text if title else ''
-                if desc:
-                    text += ' ' + desc.text
-
-                if title and self._is_relevant(text):
+                if title:
                     projects.append({
                         'title': title.text.strip(),
                         'link': self.base_url + title['href'],

@@ -59,18 +59,22 @@ class FLRuParser(BaseParser):
         ssl_context = ssl.create_default_context()
         ssl_context.check_hostname = False
         ssl_context.verify_mode = ssl.CERT_NONE
-        
+
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
                     self.search_url,
                     headers=HEADERS,
-                    ssl=ssl_context
+                    ssl=ssl_context,
                 ) as response:
                     if response.status == 200:
-                        return await self._async_parse_response(await response.text())
+                        projects = await self._async_parse_response(await response.text())
+                        filtered = self._filter_projects(projects, KEYWORDS, EXCLUDE_WORDS)
+                        self._log_projects(filtered)
+                        return filtered
                     else:
                         self.logger.error(f"HTTP ошибка: {response.status}")
+                        return []
         except Exception as e:
             self.logger.error(f"Ошибка парсера: {e}")
             raise
