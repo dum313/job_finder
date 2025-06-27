@@ -1,26 +1,16 @@
-# Виртуальное окружение
-venv/
-__pycache__/
-*.py[cod]
-*$py.class
+# Логи
+bot.log
+debug.log
+test_notify.log
 
-# Файлы логирования
-parser.log
-sent_links.txt
+# База данных
+sent_links.db
 
-# Файлы конфигурации
+# Файлы окружения
 .env
 
-# Файлы IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Файлы сборки
-build/
-dist/
-*.egg-info/
-
-# Sensitive environment echo file
-.envecho
+# Временные файлы
+*.pyc
+__pycache__/
+*.py[cod]
+*.class
