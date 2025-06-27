@@ -1,7 +1,37 @@
 import unittest
 import asyncio
+from unittest.mock import patch
 import aiohttp
 from parsers.freelance_ru import FreelanceRuParser
+
+
+class _MockAiohttpResponse:
+    def __init__(self, text: str, status: int = 200):
+        self._text = text
+        self.status = status
+
+    async def text(self) -> str:
+        return self._text
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        pass
+
+
+def _mock_session_factory(html: str):
+    class _Session:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            pass
+
+        def get(self, *args, **kwargs):
+            return _MockAiohttpResponse(html)
+
+    return _Session()
 
 class TestFreelanceRuParser(unittest.TestCase):
     def setUp(self):
@@ -15,13 +45,20 @@ class TestFreelanceRuParser(unittest.TestCase):
     def test_async_parse(self):
         """Тестируем асинхронный парсинг"""
         async def test():
+            HTML = (
+                '<div class="content">\n'
+                '  <div class="proj">\n'
+                '    <div class="ptitle"><a href="/p1">Создать сайт</a></div>\n'
+                '    <div class="ptxt">Описание</div>\n'
+                '  </div>\n'
+                '</div>'
+            )
             try:
-                result = await self.parser.async_find_projects()
-                self.assertIsInstance(result, list)
-                # Проверяем, что результат - это список словарей с ожидаемыми ключами
-                if result:  # если список не пустой
-                    self.assertIn('title', result[0])
-                    self.assertIn('link', result[0])
+                with patch('aiohttp.ClientSession', return_value=_mock_session_factory(HTML)):
+                    result = await self.parser.async_find_projects()
+                    self.assertIsInstance(result, list)
+                    self.assertEqual(len(result), 1)
+                    self.assertEqual(result[0]['title'], 'Создать сайт')
             except aiohttp.ClientConnectorError as e:
                 self.skipTest(f"Не удалось подключиться к серверу: {e}")
             except Exception as e:
