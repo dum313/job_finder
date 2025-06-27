@@ -1,18 +1,12 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict
 import requests
 import aiohttp
 import ssl
-import certifi
 from .base_parser import BaseParser
 from bs4 import BeautifulSoup
 from config import HEADERS
 from utils.keywords import KEYWORDS, EXCLUDE_WORDS
 import logging
-
-# Создаем пользовательский контекст SSL, который игнорирует ошибки проверки сертификата
-ssl_context = ssl.create_default_context()
-ssl_context.check_hostname = False
-ssl_context.verify_mode = ssl.CERT_NONE
 
 logger = logging.getLogger(__name__)
 
