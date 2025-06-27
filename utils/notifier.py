@@ -1,31 +1,11 @@
 import logging
 import html
-from pathlib import Path
 import requests
 from config import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
+from utils import storage
 
 logger = logging.getLogger(__name__)
-
-SENT_LINKS_FILE = Path('sent_links.txt')
-_sent_links = set()
-
-def _load_sent_links() -> None:
-    if SENT_LINKS_FILE.exists():
-        try:
-            with SENT_LINKS_FILE.open('r', encoding='utf-8') as fh:
-                for line in fh:
-                    _sent_links.add(line.strip())
-        except Exception:
-            logger.warning('Не удалось загрузить список отправленных ссылок')
-
-def _save_sent_link(link: str) -> None:
-    try:
-        with SENT_LINKS_FILE.open('a', encoding='utf-8') as fh:
-            fh.write(link + '\n')
-    except Exception:
-        logger.warning('Не удалось сохранить отправленную ссылку')
-
-_load_sent_links()
+_sent_links = storage.load_sent_links()
 
 def notify_user(project):
     """Отправляет уведомление о новом проекте в Telegram"""
@@ -58,7 +38,7 @@ def notify_user(project):
         response.raise_for_status()
         logger.info(f"Уведомление отправлено: {project['title']}")
         _sent_links.add(link)
-        _save_sent_link(link)
+        storage.save_sent_link(link)
 
     except requests.RequestException as e:
         logger.error(f"Ошибка при отправке сообщения: {e}")
