@@ -1,21 +1,21 @@
 import logging
 import html
-from telegram import Bot
+from telegram import Bot as TelegramBot
 from config import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
 from utils import storage
 
 logger = logging.getLogger(__name__)
 _sent_links = storage.load_sent_links()
-_bot: Bot | None = None
+_bot: TelegramBot | None = None
 
 
-def _get_bot() -> Bot:
+def _get_bot() -> TelegramBot:
     global _bot
     if _bot is None:
-        _bot = Bot(token=TELEGRAM_TOKEN)
+        _bot = TelegramBot(token=TELEGRAM_TOKEN)
     return _bot
 
-def notify_user(project):
+async def notify_user(project):
     """Отправляет уведомление о новом проекте в Telegram"""
     if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
         logger.error("Ошибка: Не указаны токен или chat_id для Telegram")
@@ -37,10 +37,11 @@ def notify_user(project):
     
     try:
         bot = _get_bot()
-        bot.send_message(
+        await bot.send_message(
             chat_id=TELEGRAM_CHAT_ID,
             text=message,
             parse_mode="HTML",
+            disable_web_page_preview=True
         )
         logger.info(f"Уведомление отправлено: {project['title']}")
         _sent_links.add(link)
@@ -48,3 +49,4 @@ def notify_user(project):
 
     except Exception as e:
         logger.error(f"Ошибка при отправке сообщения: {e}")
+        raise

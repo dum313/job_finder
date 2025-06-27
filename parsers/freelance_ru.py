@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class FreelanceRuParser(BaseParser):
     def __init__(self):
         super().__init__('Freelance.ru', 'https://freelance.ru')
-        self.search_url = f'{self.base_url}/projects/'
+        self.search_url = f'{self.base_url}/project/search/'
 
     def find_projects(self):
         """Ищет заказы на freelance.ru"""
@@ -26,26 +26,27 @@ class FreelanceRuParser(BaseParser):
             projects = []
             
             # Находим все проекты на странице
-            project_items = soup.select('.content .proj')
+            project_items = soup.select('div.project')
             
             for item in project_items:
                 try:
-                    title = item.select_one('.ptitle a')
-                    desc = item.select_one('.ptxt')
+                    title_elem = item.select_one('h2 a')
+                    desc_elem = item.select_one('.description')
                     
-                    if title and desc:
-                        # Получаем полный текст для поиска ключевых слов
-                        full_text = (title.text + ' ' + desc.text).lower()
+                    if title_elem and desc_elem:
+                        title = title_elem.text.strip()
+                        desc = desc_elem.text.strip()
+                        full_text = f"{title} {desc}".lower()
                         
                         # Проверяем наличие ключевых слов и отсутствие исключающих слов
                         if (any(keyword in full_text for keyword in KEYWORDS) and
                             not any(exclude in full_text for exclude in EXCLUDE_WORDS)):
                             
-                            link = f'{self.base_url}{title["href"]}'
+                            link = f"{self.base_url}{title_elem['href']}"
                             projects.append({
-                                'title': title.text.strip(),
+                                'title': title,
                                 'link': link,
-                                'description': desc.text.strip()
+                                'description': desc
                             })
                 except Exception as e:
                     self.logger.error(f"Ошибка при обработке проекта: {e}")
@@ -90,20 +91,27 @@ class FreelanceRuParser(BaseParser):
         projects = []
         
         # Находим все проекты на странице
-        project_items = soup.select('.content .proj')
+        project_items = soup.select('div.project')
         
         for item in project_items:
             try:
-                title = item.select_one('.ptitle a')
-                desc = item.select_one('.ptxt')
+                title_elem = item.select_one('h2 a')
+                desc_elem = item.select_one('.description')
                 
-                if title and desc:
-                    link = f'{self.base_url}{title["href"]}'
-                    projects.append({
-                        'title': title.text.strip(),
-                        'link': link,
-                        'description': desc.text.strip(),
-                    })
+                if title_elem and desc_elem:
+                    title = title_elem.text.strip()
+                    desc = desc_elem.text.strip()
+                    full_text = f"{title} {desc}".lower()
+                    
+                    if (any(keyword in full_text for keyword in KEYWORDS) and
+                        not any(exclude in full_text for exclude in EXCLUDE_WORDS)):
+                        
+                        link = f"{self.base_url}{title_elem['href']}"
+                        projects.append({
+                            'title': title,
+                            'link': link,
+                            'description': desc
+                        })
             except Exception as e:
                 self.logger.error(f"Ошибка при обработке проекта: {e}")
                 continue
