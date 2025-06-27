@@ -1,20 +1,16 @@
 import logging
 from utils.notifier import notify_user
 
-class DummyResponse:
-    def raise_for_status(self):
-        pass
-
-
 def test_notify_user_escaping(monkeypatch, tmp_path):
     sent = {}
 
-    def mock_post(url, data):
-        sent.update(data)
-        return DummyResponse()
+    def mock_send(self, chat_id, text, parse_mode=None):
+        sent['chat_id'] = chat_id
+        sent['text'] = text
+        sent['parse_mode'] = parse_mode
 
     import utils.notifier as notifier
-    monkeypatch.setattr('requests.post', mock_post, raising=False)
+    monkeypatch.setattr('telegram.Bot.send_message', mock_send, raising=False)
     # disable logging output
     logging.getLogger('utils.notifier').disabled = True
     notifier.storage.init(tmp_path / 'links.db')
@@ -32,12 +28,11 @@ def test_notify_user_escaping(monkeypatch, tmp_path):
 def test_notify_user_duplicate(monkeypatch, tmp_path):
     sent = []
 
-    def mock_post(url, data):
-        sent.append(data)
-        return DummyResponse()
+    def mock_send(self, chat_id, text, parse_mode=None):
+        sent.append(text)
 
     import utils.notifier as notifier
-    monkeypatch.setattr('requests.post', mock_post, raising=False)
+    monkeypatch.setattr('telegram.Bot.send_message', mock_send, raising=False)
     logging.getLogger('utils.notifier').disabled = True
     notifier.storage.init(tmp_path / 'links.db')
     monkeypatch.setattr(notifier, '_sent_links', set(), raising=False)

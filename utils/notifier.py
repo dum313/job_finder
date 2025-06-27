@@ -1,11 +1,19 @@
 import logging
 import html
-import requests
+from telegram import Bot
 from config import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
 from utils import storage
 
 logger = logging.getLogger(__name__)
 _sent_links = storage.load_sent_links()
+_bot: Bot | None = None
+
+
+def _get_bot() -> Bot:
+    global _bot
+    if _bot is None:
+        _bot = Bot(token=TELEGRAM_TOKEN)
+    return _bot
 
 def notify_user(project):
     """Отправляет уведомление о новом проекте в Telegram"""
@@ -28,17 +36,15 @@ def notify_user(project):
     )
     
     try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-        data = {
-            'chat_id': TELEGRAM_CHAT_ID,
-            'text': message,
-            'parse_mode': 'HTML'
-        }
-        response = requests.post(url, data=data)
-        response.raise_for_status()
+        bot = _get_bot()
+        bot.send_message(
+            chat_id=TELEGRAM_CHAT_ID,
+            text=message,
+            parse_mode="HTML",
+        )
         logger.info(f"Уведомление отправлено: {project['title']}")
         _sent_links.add(link)
         storage.save_sent_link(link)
 
-    except requests.RequestException as e:
+    except Exception as e:
         logger.error(f"Ошибка при отправке сообщения: {e}")

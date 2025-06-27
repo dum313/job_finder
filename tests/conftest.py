@@ -36,6 +36,58 @@ except ModuleNotFoundError:  # pragma: no cover
         raise RuntimeError("network disabled")
     requests.get = _not_implemented
 
+# Stub `telegram` if missing
+try:
+    import telegram  # type: ignore
+    import telegram.ext  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover
+    telegram = types.ModuleType("telegram")
+    sys.modules["telegram"] = telegram
+
+    class Bot:  # type: ignore
+        def __init__(self, *a, **k):
+            pass
+        def send_message(self, *a, **k):
+            pass
+
+    class Update:  # type: ignore
+        pass
+
+    telegram.Bot = Bot
+    telegram.Update = Update
+
+    ext = types.ModuleType("telegram.ext")
+    sys.modules["telegram.ext"] = ext
+
+    class Application:  # type: ignore
+        async def initialize(self):
+            pass
+        async def start(self):
+            pass
+        async def stop(self):
+            pass
+        async def shutdown(self):
+            pass
+        def add_handler(self, *a, **k):
+            pass
+
+    class ApplicationBuilder:  # type: ignore
+        def token(self, _):
+            return self
+        def build(self):
+            return Application()
+
+    class CommandHandler:  # type: ignore
+        def __init__(self, *a, **k):
+            pass
+
+    class ContextTypes:  # type: ignore
+        DEFAULT_TYPE = object
+
+    ext.ApplicationBuilder = ApplicationBuilder
+    ext.Application = Application
+    ext.CommandHandler = CommandHandler
+    ext.ContextTypes = ContextTypes
 # Stub `aiohttp` if missing
 try:
     import aiohttp  # type: ignore
