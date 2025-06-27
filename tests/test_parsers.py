@@ -37,6 +37,15 @@ class TestFreelanceRuParser(unittest.TestCase):
     def setUp(self):
         self.parser = FreelanceRuParser()
 
+    HTML_NO_KEYWORDS = (
+        '<div class="content">\n'
+        '  <div class="proj">\n'
+        '    <div class="ptitle"><a href="/p2">Написать скрипт</a></div>\n'
+        '    <div class="ptxt">Описание</div>\n'
+        '  </div>\n'
+        '</div>'
+    )
+
     def test_parser_init(self):
         self.assertIsNotNone(self.parser)
         self.assertTrue(hasattr(self.parser, 'base_url'))
@@ -64,4 +73,12 @@ class TestFreelanceRuParser(unittest.TestCase):
             except Exception as e:
                 self.fail(f"Асинхронный парсинг завершился с ошибкой: {e}")
         
+        asyncio.run(test())
+
+    def test_async_parse_no_keywords(self):
+        """Заказ без ключевых слов должен быть отфильтрован"""
+        async def test():
+            with patch('aiohttp.ClientSession', return_value=_mock_session_factory(self.HTML_NO_KEYWORDS)):
+                result = await self.parser.async_find_projects()
+                self.assertEqual(result, [])
         asyncio.run(test())
