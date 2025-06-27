@@ -1,8 +1,14 @@
 import asyncio
 import logging
 import os
+import pytest
 from utils.notifier import notify_user
 from config import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
+
+pytest.skip(
+    "Manual test requiring real Telegram credentials and network access",
+    allow_module_level=True,
+)
 
 # Выводим отладочную информацию
 print("Проверка переменных окружения:")

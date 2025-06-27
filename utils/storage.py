@@ -86,4 +86,3 @@ def delete_keyword(word: str, include: bool = True) -> None:
     )
     conn.commit()
 
-init()

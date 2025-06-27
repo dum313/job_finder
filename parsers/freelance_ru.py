@@ -26,12 +26,12 @@ class FreelanceRuParser(BaseParser):
             projects = []
             
             # Находим все проекты на странице
-            project_items = soup.select('div.project')
+            project_items = soup.select('div.proj')
             
             for item in project_items:
                 try:
-                    title_elem = item.select_one('h2 a')
-                    desc_elem = item.select_one('.description')
+                    title_elem = item.select_one('.ptitle a')
+                    desc_elem = item.select_one('.ptxt')
                     
                     if title_elem and desc_elem:
                         title = title_elem.text.strip()
@@ -91,12 +91,12 @@ class FreelanceRuParser(BaseParser):
         projects = []
         
         # Находим все проекты на странице
-        project_items = soup.select('div.project')
+        project_items = soup.select('div.proj')
         
         for item in project_items:
             try:
-                title_elem = item.select_one('h2 a')
-                desc_elem = item.select_one('.description')
+                title_elem = item.select_one('.ptitle a')
+                desc_elem = item.select_one('.ptxt')
                 
                 if title_elem and desc_elem:
                     title = title_elem.text.strip()

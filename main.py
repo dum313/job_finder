@@ -9,6 +9,7 @@ from parsers.kwork_ru import KworkRuParser
 from parsers.upwork import UpworkParser
 from utils.notifier import notify_user
 from utils.telegram_bot import create_application
+from utils import storage
 from config import (
     PARSING_INTERVAL,
     CRON_EXPRESSION,
@@ -125,6 +126,7 @@ def create_scheduler() -> AsyncIOScheduler:
 
 async def main() -> None:
     try:
+        storage.init()
         logger.info("Starting application...")
         
         # Create and start scheduler

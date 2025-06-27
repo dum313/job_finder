@@ -3,6 +3,7 @@ import asyncio
 from unittest.mock import patch
 import aiohttp
 from parsers.freelance_ru import FreelanceRuParser
+from utils import storage
 
 
 class _MockAiohttpResponse:
@@ -35,6 +36,7 @@ def _mock_session_factory(html: str):
 
 class TestFreelanceRuParser(unittest.TestCase):
     def setUp(self):
+        storage.init(':memory:')
         self.parser = FreelanceRuParser()
 
     HTML_NO_KEYWORDS = (
