@@ -55,6 +55,27 @@ echo "TELEGRAM_CHAT_ID=ваш_chat_id" >> .env
 python main.py
 ```
 
+### Настройка ключевых слов
+
+Списки ключевых слов для поиска можно переопределить через переменные окружения
+или файлы. По умолчанию используется набор из `utils/keywords.py`.
+
+**Пример через `.env`**:
+
+```bash
+KEYWORDS="python,django,flask"
+EXCLUDE_WORDS="доработка,seo"
+```
+
+**Пример с файлами**:
+
+```bash
+KEYWORDS_FILE=keywords.txt
+EXCLUDE_WORDS_FILE=exclude.txt
+```
+
+Файлы `keywords.txt` и `exclude.txt` должны содержать по одному слову в строке.
+
 По умолчанию приложение запускается в асинхронном режиме.
 
 ## Требования
