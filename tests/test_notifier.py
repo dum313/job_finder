@@ -1,10 +1,11 @@
 import logging
+import asyncio
 from utils.notifier import notify_user
 
 def test_notify_user_escaping(monkeypatch, tmp_path):
     sent = {}
 
-    def mock_send(self, chat_id, text, parse_mode=None):
+    async def mock_send(self, chat_id, text, parse_mode=None, disable_web_page_preview=None):
         sent['chat_id'] = chat_id
         sent['text'] = text
         sent['parse_mode'] = parse_mode
@@ -20,7 +21,7 @@ def test_notify_user_escaping(monkeypatch, tmp_path):
         'link': 'http://example.com',
         'description': '<i>Description</i>'
     }
-    notify_user(project)
+    asyncio.run(notify_user(project))
     assert '&lt;b&gt;Title&lt;/b&gt;' in sent['text']
     assert '&lt;i&gt;Description&lt;/i&gt;' in sent['text']
 
@@ -28,7 +29,7 @@ def test_notify_user_escaping(monkeypatch, tmp_path):
 def test_notify_user_duplicate(monkeypatch, tmp_path):
     sent = []
 
-    def mock_send(self, chat_id, text, parse_mode=None):
+    async def mock_send(self, chat_id, text, parse_mode=None, disable_web_page_preview=None):
         sent.append(text)
 
     import utils.notifier as notifier
@@ -38,8 +39,8 @@ def test_notify_user_duplicate(monkeypatch, tmp_path):
     monkeypatch.setattr(notifier, '_sent_links', set(), raising=False)
 
     project = {'title': 't', 'link': 'http://dup', 'description': 'd'}
-    notifier.notify_user(project)
+    asyncio.run(notifier.notify_user(project))
     # simulate new run by clearing in-memory cache and reloading from DB
     notifier._sent_links = notifier.storage.load_sent_links()
-    notifier.notify_user(project)
+    asyncio.run(notifier.notify_user(project))
     assert len(sent) == 1
