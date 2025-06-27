@@ -17,7 +17,7 @@ def test_notify_user_escaping(monkeypatch, tmp_path):
     monkeypatch.setattr('requests.post', mock_post, raising=False)
     # disable logging output
     logging.getLogger('utils.notifier').disabled = True
-    monkeypatch.setattr(notifier, 'SENT_LINKS_FILE', tmp_path / 'links.txt', raising=False)
+    notifier.storage.init(tmp_path / 'links.db')
     monkeypatch.setattr(notifier, '_sent_links', set(), raising=False)
     project = {
         'title': '<b>Title</b>',
@@ -39,10 +39,12 @@ def test_notify_user_duplicate(monkeypatch, tmp_path):
     import utils.notifier as notifier
     monkeypatch.setattr('requests.post', mock_post, raising=False)
     logging.getLogger('utils.notifier').disabled = True
-    monkeypatch.setattr(notifier, 'SENT_LINKS_FILE', tmp_path / 'links.txt', raising=False)
+    notifier.storage.init(tmp_path / 'links.db')
     monkeypatch.setattr(notifier, '_sent_links', set(), raising=False)
 
     project = {'title': 't', 'link': 'http://dup', 'description': 'd'}
     notifier.notify_user(project)
+    # simulate new run by clearing in-memory cache and reloading from DB
+    notifier._sent_links = notifier.storage.load_sent_links()
     notifier.notify_user(project)
     assert len(sent) == 1
