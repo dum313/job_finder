@@ -55,7 +55,7 @@ class KworkRuParser(BaseParser):
 
     async def async_find_projects(self) -> List[Dict]:
         """Асинхронно ищет проекты на kwork.ru"""
-        url = 'https://kwork.ru/projects'
+        url = self.search_url
         projects = []
         
         # Отключаем проверку SSL для тестового режима
