@@ -14,6 +14,8 @@ TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
 # Настройки парсинга
 PARSING_INTERVAL = 30  # Минуты между проверками
+CRON_EXPRESSION = os.getenv('CRON_EXPRESSION')  # Cron, если указан
+TIMEZONE = os.getenv('TIMEZONE', 'UTC')  # Часовой пояс планировщика
 MAX_RETRIES = 3       # Максимальное количество попыток при ошибке
 RETRY_DELAY = 5       # Задержка между попытками (секунды)
 

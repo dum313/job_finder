@@ -61,6 +61,39 @@ except ModuleNotFoundError:  # pragma: no cover
     sys.modules["certifi"] = certifi
     certifi.where = lambda: ""
 
+# Stub `apscheduler` if missing
+try:
+    import apscheduler  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover
+    apscheduler = types.ModuleType("apscheduler")
+    sys.modules["apscheduler"] = apscheduler
+    schedulers = types.ModuleType("apscheduler.schedulers")
+    asyncio_sched = types.ModuleType("apscheduler.schedulers.asyncio")
+    triggers = types.ModuleType("apscheduler.triggers")
+    cron = types.ModuleType("apscheduler.triggers.cron")
+    sys.modules["apscheduler.schedulers"] = schedulers
+    sys.modules["apscheduler.schedulers.asyncio"] = asyncio_sched
+    sys.modules["apscheduler.triggers"] = triggers
+    sys.modules["apscheduler.triggers.cron"] = cron
+
+    class AsyncIOScheduler:  # type: ignore
+        def __init__(self, *a, **k):
+            pass
+
+        def add_job(self, *a, **k):
+            pass
+
+        def start(self):
+            pass
+
+    class CronTrigger:  # type: ignore
+        @classmethod
+        def from_crontab(cls, expr):
+            return cls()
+
+    asyncio_sched.AsyncIOScheduler = AsyncIOScheduler
+    cron.CronTrigger = CronTrigger
+
 # Minimal implementation of BeautifulSoup for our tests if bs4 is missing
 try:
     from bs4 import BeautifulSoup  # type: ignore

@@ -1,11 +1,19 @@
 import logging
 import asyncio
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 from parsers.freelance_ru import FreelanceRuParser
 from parsers.fl_ru import FLRuParser
 from parsers.kwork_ru import KworkRuParser
 from parsers.upwork import UpworkParser
 from utils.notifier import notify_user
-from config import PARSING_INTERVAL, LOG_FILE, LOG_LEVEL
+from config import (
+    PARSING_INTERVAL,
+    CRON_EXPRESSION,
+    TIMEZONE,
+    LOG_FILE,
+    LOG_LEVEL,
+)
 from logging.handlers import RotatingFileHandler
 
 # Настройка логирования
@@ -80,10 +88,20 @@ async def async_job():
         logger.critical(f"Асинхронная ошибка: {e}", exc_info=True)
         notify_user(f"Асинхронная ошибка: {e}")
 
-async def main():
-    while True:
-        await async_job()
-        await asyncio.sleep(PARSING_INTERVAL * 60)
+def create_scheduler() -> AsyncIOScheduler:
+    scheduler = AsyncIOScheduler(timezone=TIMEZONE)
+    if CRON_EXPRESSION:
+        trigger = CronTrigger.from_crontab(CRON_EXPRESSION)
+        scheduler.add_job(async_job, trigger)
+    else:
+        scheduler.add_job(async_job, "interval", minutes=PARSING_INTERVAL)
+    return scheduler
+
+
+async def main() -> None:
+    scheduler = create_scheduler()
+    scheduler.start()
+    await asyncio.Event().wait()
 
 if __name__ == "__main__":
     # Запускаем асинхронную версию по умолчанию

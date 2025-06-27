@@ -2,3 +2,4 @@ python-dotenv==1.0.0
 requests==2.31.0
 beautifulsoup4==4.12.2
 aiohttp==3.9.1  # Для асинхронных HTTP-запросов
+apscheduler==3.10.4
