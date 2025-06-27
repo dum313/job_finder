@@ -1,22 +1,6 @@
 import logging
 import asyncio
 import os
-
-# Настройка логирования с подробным выводом
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('debug.log')
-    ]
-)
-logger = logging.getLogger(__name__)
-
-# Выводим переменные окружения для отладки
-logger.info("Проверка переменных окружения:")
-for var in ['TELEGRAM_TOKEN', 'TELEGRAM_CHAT_ID', 'CRON_EXPRESSION']:
-    logger.info(f"{var} = {'установлен' if os.getenv(var) else 'не установлен'}")
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from parsers.freelance_ru import FreelanceRuParser
@@ -48,6 +32,11 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+# Выводим переменные окружения для отладки
+logger.info("Проверка переменных окружения:")
+for var in ['TELEGRAM_TOKEN', 'TELEGRAM_CHAT_ID', 'CRON_EXPRESSION']:
+    logger.info(f"{var} = {'установлен' if os.getenv(var) else 'не установлен'}")
 
 async def async_job():
     """Асинхронная версия основной функции"""
