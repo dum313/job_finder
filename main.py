@@ -49,32 +49,6 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-def job():
-    """Основная функция, которая выполняется по расписанию"""
-    logger.info("🔍 Начинаю поиск заказов...")
-    
-    try:
-        # Создаем список парсеров
-        parsers = [
-            FreelanceRuParser(),
-            FLRuParser(),
-            KworkRuParser(),
-            UpworkParser(),
-        ]
-        
-        for parser in parsers:
-            try:
-                parser.find_projects()
-            except Exception as e:
-                logger.error(
-                    f"Ошибка в парсере {parser.__class__.__name__}: {e}"
-                )
-                notify_user(f"Ошибка парсера: {parser.__class__.__name__}")
-                
-    except Exception as e:
-        logger.critical(f"Критическая ошибка: {e}", exc_info=True)
-        notify_user(f"Критическая ошибка: {e}")
-
 async def async_job():
     """Асинхронная версия основной функции"""
     logger.info("🔍 Запускаю асинхронный поиск заказов...")
