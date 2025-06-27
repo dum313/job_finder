@@ -47,6 +47,14 @@ class TestFLRuParser(unittest.TestCase):
         '</div>'
     )
 
+    HTML_NO_KEYWORDS = (
+        '<div class="b-post">\n'
+        '  <a class="b-post__link" href="/p2">Написать скрипт</a>\n'
+        '  <div class="b-post__txt">Описание</div>\n'
+        '  <span class="b-post__price">1000</span>\n'
+        '</div>'
+    )
+
     def setUp(self):
         self.parser = FLRuParser()
 
@@ -57,6 +65,12 @@ class TestFLRuParser(unittest.TestCase):
         self.assertEqual(len(projects), 1)
         self.assertEqual(projects[0]['title'], 'Создать сайт')
 
+    @patch('parsers.fl_ru.requests.get')
+    def test_find_projects_no_keywords(self, mock_get):
+        mock_get.return_value = _MockRequestsResponse(self.HTML_NO_KEYWORDS)
+        projects = self.parser.find_projects()
+        self.assertEqual(projects, [])
+
     def test_async_find_projects(self):
         async def run():
             with patch('aiohttp.ClientSession', return_value=_mock_session_factory(self.HTML)):
@@ -65,11 +79,26 @@ class TestFLRuParser(unittest.TestCase):
                 self.assertEqual(projects[0]['title'], 'Создать сайт')
         asyncio.run(run())
 
+    def test_async_find_projects_no_keywords(self):
+        async def run():
+            with patch('aiohttp.ClientSession', return_value=_mock_session_factory(self.HTML_NO_KEYWORDS)):
+                projects = await self.parser.async_find_projects()
+                self.assertEqual(projects, [])
+        asyncio.run(run())
+
 
 class TestKworkRuParser(unittest.TestCase):
     HTML = (
         '<div class="card card--order">\n'
         '  <div class="card__title" href="/k1"><a href="/k1">Верстка сайта</a></div>\n'
+        '  <div class="card__description">Описание</div>\n'
+        '  <span class="card__price">1000 Р</span>\n'
+        '</div>'
+    )
+
+    HTML_NO_KEYWORDS = (
+        '<div class="card card--order">\n'
+        '  <div class="card__title" href="/k2"><a href="/k2">Написать скрипт</a></div>\n'
         '  <div class="card__description">Описание</div>\n'
         '  <span class="card__price">1000 Р</span>\n'
         '</div>'
@@ -85,10 +114,23 @@ class TestKworkRuParser(unittest.TestCase):
         self.assertEqual(len(projects), 1)
         self.assertEqual(projects[0]['title'], 'Верстка сайта')
 
+    @patch('parsers.kwork_ru.requests.get')
+    def test_find_projects_no_keywords(self, mock_get):
+        mock_get.return_value = _MockRequestsResponse(self.HTML_NO_KEYWORDS)
+        projects = self.parser.find_projects()
+        self.assertEqual(projects, [])
+
     def test_async_find_projects(self):
         async def run():
             with patch('aiohttp.ClientSession', return_value=_mock_session_factory(self.HTML)):
                 projects = await self.parser.async_find_projects()
                 self.assertEqual(len(projects), 1)
                 self.assertEqual(projects[0]['title'], 'Верстка сайта')
+        asyncio.run(run())
+
+    def test_async_find_projects_no_keywords(self):
+        async def run():
+            with patch('aiohttp.ClientSession', return_value=_mock_session_factory(self.HTML_NO_KEYWORDS)):
+                projects = await self.parser.async_find_projects()
+                self.assertEqual(projects, [])
         asyncio.run(run())
