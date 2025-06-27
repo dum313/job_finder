@@ -7,11 +7,11 @@ def notify_user(project):
         print("Ошибка: Не указаны токен или chat_id для Telegram")
         return
     
-    message = f"""
-🔹 Новый заказ: {project['title']}
-🔗 {project['link']}
-📝 Описание: {project['description']}
-"""
+    message = (
+        f"<b>🔹 Новый заказ:</b> {project['title']}\n"
+        f"🔗 <a href=\"{project['link']}\">{project['link']}</a>\n"
+        f"<b>📝 Описание:</b> {project['description']}"
+    )
     
     try:
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
