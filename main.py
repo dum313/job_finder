@@ -3,6 +3,7 @@ import asyncio
 from parsers.freelance_ru import FreelanceRuParser
 from parsers.fl_ru import FLRuParser
 from parsers.kwork_ru import KworkRuParser
+from parsers.upwork import UpworkParser
 from utils.notifier import notify_user
 from config import PARSING_INTERVAL, LOG_FILE, LOG_LEVEL
 from logging.handlers import RotatingFileHandler
@@ -31,7 +32,8 @@ def job():
         parsers = [
             FreelanceRuParser(),
             FLRuParser(),
-            KworkRuParser()
+            KworkRuParser(),
+            UpworkParser(),
         ]
         
         for parser in parsers:
@@ -54,7 +56,8 @@ async def async_job():
     parsers = [
         ("FreelanceRu", FreelanceRuParser()),
         ("FLRu", FLRuParser()),
-        ("KworkRu", KworkRuParser())
+        ("KworkRu", KworkRuParser()),
+        ("Upwork", UpworkParser()),
     ]
     
     try:
