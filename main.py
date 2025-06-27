@@ -36,9 +36,11 @@ def job():
         
         for parser in parsers:
             try:
-                parser.parse()
+                parser.find_projects()
             except Exception as e:
-                logger.error(f"Ошибка в парсере {parser.__class__.__name__}: {e}")
+                logger.error(
+                    f"Ошибка в парсере {parser.__class__.__name__}: {e}"
+                )
                 notify_user(f"Ошибка парсера: {parser.__class__.__name__}")
                 
     except Exception as e:
