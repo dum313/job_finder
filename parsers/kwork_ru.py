@@ -100,4 +100,3 @@ class KworkRuParser(BaseParser):
 
         return projects
 
-    async_parse = async_find_projects  # Алиас для совместимости
