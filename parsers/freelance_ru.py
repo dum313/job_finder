@@ -110,4 +110,3 @@ class FreelanceRuParser(BaseParser):
 
         return projects
 
-    async_parse = async_find_projects  # Алиас для совместимости с main.py
