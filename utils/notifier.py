@@ -1,16 +1,23 @@
+import logging
+import html
 import requests
 from config import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
+
+logger = logging.getLogger(__name__)
 
 def notify_user(project):
     """Отправляет уведомление о новом проекте в Telegram"""
     if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
-        print("Ошибка: Не указаны токен или chat_id для Telegram")
+        logger.error("Ошибка: Не указаны токен или chat_id для Telegram")
         return
-    
+
+    title = html.escape(project['title'])
+    description = html.escape(project['description'])
+
     message = (
-        f"<b>🔹 Новый заказ:</b> {project['title']}\n"
+        f"<b>🔹 Новый заказ:</b> {title}\n"
         f"🔗 <a href=\"{project['link']}\">{project['link']}</a>\n"
-        f"<b>📝 Описание:</b> {project['description']}"
+        f"<b>📝 Описание:</b> {description}"
     )
     
     try:
@@ -22,7 +29,7 @@ def notify_user(project):
         }
         response = requests.post(url, data=data)
         response.raise_for_status()
-        print(f"Уведомление отправлено: {project['title']}")
-    
+        logger.info(f"Уведомление отправлено: {project['title']}")
+
     except requests.RequestException as e:
-        print(f"Ошибка при отправке сообщения: {e}")
+        logger.error(f"Ошибка при отправке сообщения: {e}")
