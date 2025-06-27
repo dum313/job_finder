@@ -90,6 +90,7 @@ EXCLUDE_WORDS_FILE=exclude.txt
 
 - `requests`
 - `beautifulsoup4`
+- `python-telegram-bot`
 
 ## Уведомления
 
@@ -107,6 +108,15 @@ EXCLUDE_WORDS_FILE=exclude.txt
 
 При необходимости вы можете изменить содержимое сообщений в файле
 `utils/notifier.py`.
+
+## Команды Telegram
+
+Бот поддерживает управление ключевыми словами прямо из чата.
+Доступны следующие команды:
+
+- `/addkeyword word` — добавить слово в список.
+- `/removekeyword word` — удалить слово.
+- `/list` — показать текущий набор ключевых слов.
 
 ## Лицензия
 

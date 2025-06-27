@@ -24,6 +24,9 @@ def init(db_path: Path | str | None = None) -> None:
     _conn.execute(
         "CREATE TABLE IF NOT EXISTS sent_links (link TEXT PRIMARY KEY)"
     )
+    _conn.execute(
+        "CREATE TABLE IF NOT EXISTS keywords (word TEXT PRIMARY KEY, type TEXT NOT NULL)"
+    )
     _conn.commit()
 
 
@@ -52,5 +55,35 @@ def save_sent_link(link: str) -> None:
         conn.commit()
     except Exception:
         logger.warning("Не удалось сохранить отправленную ссылку")
+
+
+def load_keywords(include: bool = True) -> Set[str]:
+    """Load stored keywords of the specified type."""
+    conn = _get_conn()
+    cur = conn.execute(
+        "SELECT word FROM keywords WHERE type=?",
+        ("include" if include else "exclude",),
+    )
+    return {row[0] for row in cur.fetchall()}
+
+
+def save_keyword(word: str, include: bool = True) -> None:
+    """Save or update a keyword."""
+    conn = _get_conn()
+    conn.execute(
+        "INSERT OR REPLACE INTO keywords(word, type) VALUES(?, ?)",
+        (word, "include" if include else "exclude"),
+    )
+    conn.commit()
+
+
+def delete_keyword(word: str, include: bool = True) -> None:
+    """Delete a keyword from storage."""
+    conn = _get_conn()
+    conn.execute(
+        "DELETE FROM keywords WHERE word=? AND type=?",
+        (word, "include" if include else "exclude"),
+    )
+    conn.commit()
 
 init()

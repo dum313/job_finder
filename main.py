@@ -7,6 +7,7 @@ from parsers.fl_ru import FLRuParser
 from parsers.kwork_ru import KworkRuParser
 from parsers.upwork import UpworkParser
 from utils.notifier import notify_user
+from utils.telegram_bot import create_application
 from config import (
     PARSING_INTERVAL,
     CRON_EXPRESSION,
@@ -101,6 +102,11 @@ def create_scheduler() -> AsyncIOScheduler:
 async def main() -> None:
     scheduler = create_scheduler()
     scheduler.start()
+
+    application = create_application()
+    await application.initialize()
+    await application.start()
+
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
