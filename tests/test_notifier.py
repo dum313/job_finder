@@ -1,6 +1,6 @@
 import logging
 import asyncio
-from utils.notifier import notify_user
+from utils.notifier import notify_user, notify_start, notify_stop
 
 def test_notify_user_escaping(monkeypatch, tmp_path):
     sent = {}
@@ -44,3 +44,18 @@ def test_notify_user_duplicate(monkeypatch, tmp_path):
     notifier._sent_links = notifier.storage.load_sent_links()
     asyncio.run(notifier.notify_user(project))
     assert len(sent) == 1
+
+
+def test_start_stop_notifications(monkeypatch):
+    calls = []
+
+    async def mock_send(self, chat_id, text, parse_mode=None, disable_web_page_preview=None):
+        calls.append(text)
+
+    monkeypatch.setattr('telegram.Bot.send_message', mock_send, raising=False)
+
+    asyncio.run(notify_start())
+    asyncio.run(notify_stop())
+
+    assert any('запущен' in t for t in calls)
+    assert any('остановлен' in t for t in calls)

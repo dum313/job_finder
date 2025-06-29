@@ -26,6 +26,24 @@ def _get_bot() -> TelegramBot:
         return TelegramBot(TELEGRAM_TOKEN)
     return _application.bot
 
+async def notify_start() -> None:
+    """Send a bot-started notification."""
+    if TELEGRAM_CHAT_ID:
+        try:
+            bot = _get_bot()
+            await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text="\uD83E\uDD16 Бот запущен")
+        except Exception as e:
+            logger.error(f"Ошибка при отправке уведомления о старте: {e}")
+
+async def notify_stop() -> None:
+    """Send a bot-stopped notification."""
+    if TELEGRAM_CHAT_ID:
+        try:
+            bot = _get_bot()
+            await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text="\u23F9\uFE0F Бот остановлен")
+        except Exception as e:
+            logger.error(f"Ошибка при отправке уведомления об остановке: {e}")
+
 async def notify_user(project):
     """Отправляет уведомление о новом проекте в Telegram"""
     if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
