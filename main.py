@@ -131,15 +131,12 @@ async def main() -> None:
         logger.info("Scheduler started successfully")
         
         # Create and start Telegram application
-        logger.info("Creating Telegram application...")
+        logger.info("Creating and initializing Telegram application...")
         application = create_application()
-        logger.info("Initializing notifier with application...")
-        set_application(application)
+        set_application(application)  # Set application for notifier
         
-        logger.info("Initializing Telegram application...")
+        # Initialize and start the application
         await application.initialize()
-        
-        logger.info("Starting Telegram application...")
         await application.start()
         
         logger.info("Setting up bot commands...")

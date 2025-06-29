@@ -1,9 +1,6 @@
-from typing import List, Dict
-import ssl
-import requests
-import aiohttp
+from typing import List, Dict, Optional
+import urllib.parse
 from bs4 import BeautifulSoup
-from config import HEADERS
 from utils.keywords import KEYWORDS, EXCLUDE_WORDS
 from .base_parser import BaseParser
 
@@ -13,45 +10,83 @@ class KworkRuParser(BaseParser):
         super().__init__("Kwork.ru", "https://kwork.ru")
         self.search_url = f"{self.base_url}/orders"
 
-    def find_projects(self) -> List[Dict]:
-        """Ищет заказы на Kwork.ru"""
+    async def _parse_project_card(self, card) -> Optional[Dict]:
+        """Парсит карточку проекта"""
         try:
-            self.logger.info("🔍 Ищу заказы на Kwork.ru...")
-            response = requests.get(self.search_url, headers=HEADERS)
-            response.raise_for_status()
+            # Пытаемся найти заголовок и ссылку
+            title_elem = card.select_one('a[data-test-id="order-card-title"]')
+            if not title_elem:
+                return None
+                
+            title = title_elem.get_text(strip=True)
+            relative_url = title_elem.get('href', '')
             
-            soup = BeautifulSoup(response.text, 'html.parser')
-            projects = []
+            # Парсим описание
+            desc_elem = card.select_one('div[data-test-id="order-card-description"]')
+            description = desc_elem.get_text(strip=True) if desc_elem else ''
             
-            # Находим все проекты на странице
-            project_items = soup.select('.card.card--order')
+            # Парсим цену, если есть
+            price_elem = card.select_one('div[data-test-id="order-card-price"]')
+            price = price_elem.get_text(strip=True) if price_elem else 'Цена не указана'
             
-            for item in project_items:
-                try:
-                    title = item.select_one('.card__title')
-                    desc = item.select_one('.card__description')
-                    price = item.select_one('.card__price')
+            # Собираем полный текст для проверки ключевых слов
+            full_text = f"{title} {description}".lower()
+            
+            # Проверяем ключевые слова
+            if (any(keyword in full_text for keyword in KEYWORDS) and 
+                not any(exclude in full_text for exclude in EXCLUDE_WORDS)):
+                
+                return {
+                    'title': title,
+                    'link': urllib.parse.urljoin(self.base_url, relative_url),
+                    'description': description,
+                    'price': price,
+                    'source': 'Kwork.ru'
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Ошибка при парсинге карточки проекта: {e}")
+        
+        return None
+
+    async def async_find_projects(self) -> List[Dict]:
+        """Асинхронно ищет проекты на Kwork.ru"""
+        self.logger.info("🔍 Ищу заказы на Kwork.ru...")
+        projects = []
+        
+        try:
+            # Используем базовый метод для запроса с поддержкой отладки
+            html = await self._make_request(self.search_url)
+            if not html:
+                return []
+                
+            soup = BeautifulSoup(html, 'html.parser')
+            
+            # Ищем карточки проектов
+            project_cards = soup.select('div.card.card--order')
+            if not project_cards:
+                # Пробуем альтернативный селектор
+                project_cards = soup.select('div[data-test-id="order-card"]')
+                
+            self.logger.info(f"Найдено карточек проектов: {len(project_cards)}")
+            
+            # Парсим каждую карточку
+            for card in project_cards:
+                project = await self._parse_project_card(card)
+                if project:
+                    projects.append(project)
                     
-                    if title and desc:
-                        project = {
-                            'title': title.text.strip(),
-                            'link': f"{self.base_url}{title['href']}",
-                            'description': desc.text.strip(),
-                            'price': price.text.strip() if price else "Цена не указана"
-                        }
-                        projects.append(project)
-                except Exception as e:
-                    self.logger.error(f"Ошибка при обработке проекта: {e}")
-                    continue
+            self._log_projects(projects)
             
-            # Фильтруем проекты по ключевым словам
-            filtered_projects = self._filter_projects(projects, KEYWORDS, EXCLUDE_WORDS)
-            self._log_projects(filtered_projects)
-            return filtered_projects
+        except Exception as e:
+            self.logger.error(f"Ошибка при парсинге Kwork.ru: {e}", exc_info=True)
             
-        except requests.RequestException as e:
-            self.logger.error(f"Ошибка при получении данных с Kwork.ru: {e}")
-            return []
+        return projects
+        
+    def find_projects(self) -> List[Dict]:
+        """Синхронная версия для обратной совместимости"""
+        import asyncio
+        return asyncio.run(self.async_find_projects())
 
     async def async_find_projects(self) -> List[Dict]:
         """Асинхронно ищет проекты на kwork.ru"""
@@ -99,4 +134,3 @@ class KworkRuParser(BaseParser):
                 self.logger.error(f"Ошибка обработки проекта: {e}")
 
         return projects
-

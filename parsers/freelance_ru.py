@@ -1,63 +1,93 @@
-from typing import List, Dict
-import requests
+from typing import List, Dict, Optional
 import aiohttp
 import ssl
+import urllib.parse
 from .base_parser import BaseParser
 from bs4 import BeautifulSoup
-from config import HEADERS
 from utils.keywords import KEYWORDS, EXCLUDE_WORDS
-import logging
-
-logger = logging.getLogger(__name__)
 
 class FreelanceRuParser(BaseParser):
     def __init__(self):
         super().__init__('Freelance.ru', 'https://freelance.ru')
         self.search_url = f'{self.base_url}/project/search/'
 
-    def find_projects(self):
-        """Ищет заказы на freelance.ru"""
+    async def _parse_project_card(self, card) -> Optional[Dict]:
+        """Парсит карточку проекта"""
         try:
-            self.logger.info("🔍 Ищу заказы на freelance.ru...")
-            response = requests.get(self.search_url, headers=HEADERS)
-            response.raise_for_status()
+            # Пытаемся найти заголовок и ссылку
+            title_elem = card.select_one('h2 a')
+            if not title_elem:
+                return None
+                
+            title = title_elem.get_text(strip=True)
+            relative_url = title_elem.get('href', '')
             
-            soup = BeautifulSoup(response.text, 'html.parser')
-            projects = []
+            # Парсим описание
+            desc_elem = card.select_one('div[class*="description"]')
+            description = desc_elem.get_text(strip=True) if desc_elem else ''
             
-            # Находим все проекты на странице
-            project_items = soup.select('div.proj')
+            # Парсим цену, если есть
+            price_elem = card.select_one('div[class*="price"]')
+            price = price_elem.get_text(strip=True) if price_elem else 'Цена не указана'
             
-            for item in project_items:
-                try:
-                    title_elem = item.select_one('.ptitle a')
-                    desc_elem = item.select_one('.ptxt')
+            # Собираем полный текст для проверки ключевых слов
+            full_text = f"{title} {description}".lower()
+            
+            # Проверяем ключевые слова
+            if (any(keyword in full_text for keyword in KEYWORDS) and 
+                not any(exclude in full_text for exclude in EXCLUDE_WORDS)):
+                
+                return {
+                    'title': title,
+                    'link': urllib.parse.urljoin(self.base_url, relative_url),
+                    'description': description,
+                    'price': price,
+                    'source': 'Freelance.ru'
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Ошибка при парсинге карточки проекта: {e}")
+        
+        return None
+
+    async def async_find_projects(self) -> List[Dict]:
+        """Асинхронно ищет проекты на Freelance.ru"""
+        self.logger.info("🔍 Ищу заказы на Freelance.ru...")
+        projects = []
+        
+        try:
+            # Используем базовый метод для запроса с поддержкой отладки
+            html = await self._make_request(self.search_url)
+            if not html:
+                return []
+                
+            soup = BeautifulSoup(html, 'html.parser')
+            
+            # Ищем карточки проектов
+            project_cards = soup.select('article.project-card')
+            if not project_cards:
+                # Пробуем альтернативный селектор
+                project_cards = soup.select('div.project')
+                
+            self.logger.info(f"Найдено карточек проектов: {len(project_cards)}")
+            
+            # Парсим каждую карточку
+            for card in project_cards:
+                project = await self._parse_project_card(card)
+                if project:
+                    projects.append(project)
                     
-                    if title_elem and desc_elem:
-                        title = title_elem.text.strip()
-                        desc = desc_elem.text.strip()
-                        full_text = f"{title} {desc}".lower()
-                        
-                        # Проверяем наличие ключевых слов и отсутствие исключающих слов
-                        if (any(keyword in full_text for keyword in KEYWORDS) and
-                            not any(exclude in full_text for exclude in EXCLUDE_WORDS)):
-                            
-                            link = f"{self.base_url}{title_elem['href']}"
-                            projects.append({
-                                'title': title,
-                                'link': link,
-                                'description': desc
-                            })
-                except Exception as e:
-                    self.logger.error(f"Ошибка при обработке проекта: {e}")
-                    continue
+            self._log_projects(projects)
             
-            self.logger.info(f"Найдено {len(projects)} проектов на freelance.ru")
-            return projects
+        except Exception as e:
+            self.logger.error(f"Ошибка при парсинге Freelance.ru: {e}", exc_info=True)
             
-        except requests.RequestException as e:
-            self.logger.error(f"Ошибка при получении данных с freelance.ru: {e}")
-            return []
+        return projects
+        
+    def find_projects(self) -> List[Dict]:
+        """Синхронная версия для обратной совместимости"""
+        import asyncio
+        return asyncio.run(self.async_find_projects())
 
     async def async_find_projects(self) -> List[Dict]:
         """Асинхронная версия парсинга"""
@@ -117,4 +147,3 @@ class FreelanceRuParser(BaseParser):
                 continue
 
         return projects
-

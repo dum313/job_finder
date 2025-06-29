@@ -31,7 +31,7 @@ async def notify_start() -> None:
     if TELEGRAM_CHAT_ID:
         try:
             bot = _get_bot()
-            await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text="\uD83E\uDD16 Бот запущен")
+            await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text="🤖 Бот запущен")
         except Exception as e:
             logger.error(f"Ошибка при отправке уведомления о старте: {e}")
 
@@ -40,7 +40,7 @@ async def notify_stop() -> None:
     if TELEGRAM_CHAT_ID:
         try:
             bot = _get_bot()
-            await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text="\u23F9\uFE0F Бот остановлен")
+            await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text="⏹️ Бот остановлен")
         except Exception as e:
             logger.error(f"Ошибка при отправке уведомления об остановке: {e}")
 
