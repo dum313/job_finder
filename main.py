@@ -7,7 +7,7 @@ from parsers.freelance_ru import FreelanceRuParser
 from parsers.fl_ru import FLRuParser
 from parsers.kwork_ru import KworkRuParser
 from parsers.upwork import UpworkParser
-from utils.notifier import notify_user, set_application
+from utils.notifier import notify_user, notify_start, notify_stop, set_application
 from utils.telegram_bot import create_application
 from utils import storage
 from config import (
@@ -155,6 +155,7 @@ async def main() -> None:
             logger.error(f"Failed to set bot commands: {e}", exc_info=True)
         
         logger.info("Telegram application started successfully")
+        await notify_start()
         
         # Run the job immediately on startup
         logger.info("Running initial job...")
@@ -184,6 +185,7 @@ async def main() -> None:
             logger.info("Stopping Telegram application...")
             await application.stop()
             logger.info("Telegram application stopped")
+            await notify_stop()
 
 if __name__ == "__main__":
     # Запускаем асинхронную версию по умолчанию
