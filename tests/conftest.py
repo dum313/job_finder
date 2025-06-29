@@ -53,8 +53,29 @@ except ModuleNotFoundError:  # pragma: no cover
     class Update:  # type: ignore
         pass
 
+    class InlineKeyboardButton:  # type: ignore
+        def __init__(self, text, callback_data=None, url=None):
+            self.text = text
+            self.callback_data = callback_data
+            self.url = url
+
+    class InlineKeyboardMarkup:  # type: ignore
+        def __init__(self, keyboard):
+            self.inline_keyboard = keyboard
+
     telegram.Bot = Bot
     telegram.Update = Update
+    telegram.InlineKeyboardButton = InlineKeyboardButton
+    telegram.InlineKeyboardMarkup = InlineKeyboardMarkup
+
+    request_mod = types.ModuleType("telegram.request")
+    sys.modules["telegram.request"] = request_mod
+
+    class HTTPXRequest:  # type: ignore
+        def __init__(self, *a, **k):
+            pass
+
+    request_mod.HTTPXRequest = HTTPXRequest
 
     ext = types.ModuleType("telegram.ext")
     sys.modules["telegram.ext"] = ext
@@ -81,12 +102,17 @@ except ModuleNotFoundError:  # pragma: no cover
         def __init__(self, *a, **k):
             pass
 
+    class CallbackQueryHandler:  # type: ignore
+        def __init__(self, *a, **k):
+            pass
+
     class ContextTypes:  # type: ignore
         DEFAULT_TYPE = object
 
     ext.ApplicationBuilder = ApplicationBuilder
     ext.Application = Application
     ext.CommandHandler = CommandHandler
+    ext.CallbackQueryHandler = CallbackQueryHandler
     ext.ContextTypes = ContextTypes
 # Stub `aiohttp` if missing
 try:
