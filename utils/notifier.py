@@ -17,11 +17,13 @@ def set_application(app: Application) -> None:
     _application = app
 
 
-def _get_bot() -> Optional[TelegramBot]:
-    """Get the bot instance from the application."""
-    if _application is None or _application.bot is None:
-        logger.error("Application or bot is not initialized")
-        return None
+def _get_bot() -> TelegramBot:
+    """Return a bot instance from the application or create one if needed."""
+    if _application is None or getattr(_application, "bot", None) is None:
+        logger.warning(
+            "Application or bot is not initialized, creating Bot instance"
+        )
+        return TelegramBot(TELEGRAM_TOKEN)
     return _application.bot
 
 async def notify_user(project):

@@ -146,37 +146,39 @@ except ModuleNotFoundError:  # pragma: no cover
     asyncio_sched.AsyncIOScheduler = AsyncIOScheduler
     cron.CronTrigger = CronTrigger
 
-# Minimal implementation of BeautifulSoup for our tests if bs4 is missing
+# Minimal implementation of BeautifulSoup for our tests
 try:
     from bs4 import BeautifulSoup  # type: ignore
 except ModuleNotFoundError:  # pragma: no cover
-    def _find_by_classes(element, classes):
-        results = []
-        for el in element.iter():
-            class_attr = el.attrib.get("class", "")
-            if all(c in class_attr.split() for c in classes):
-                results.append(el)
-        return results
+    pass
 
-    def _descend(nodes, token):
-        if token.startswith('.'):
-            classes = token.strip('.').split('.')
-            found = []
-            for node in nodes:
-                found.extend(_find_by_classes(node, classes))
-            return found
+def _find_by_classes(element, classes):
+    results = []
+    for el in element.iter():
+        class_attr = el.attrib.get("class", "")
+        if all(c in class_attr.split() for c in classes):
+            results.append(el)
+    return results
+
+def _descend(nodes, token):
+    if token.startswith('.'):
+        classes = token.strip('.').split('.')
+        found = []
+        for node in nodes:
+            found.extend(_find_by_classes(node, classes))
+        return found
+    else:
+        if '.' in token:
+            tag, *cls = token.split('.')
         else:
-            if '.' in token:
-                tag, *cls = token.split('.')
-            else:
-                tag, cls = token, []
-            found = []
-            for node in nodes:
-                for el in node.iter(tag):
-                    class_attr = el.attrib.get("class", "")
-                    if all(c in class_attr.split() for c in cls):
-                        found.append(el)
-            return found
+            tag, cls = token, []
+        found = []
+        for node in nodes:
+            for el in node.iter(tag):
+                class_attr = el.attrib.get("class", "")
+                if all(c in class_attr.split() for c in cls):
+                    found.append(el)
+        return found
 
 class _FakeTag:
     def __init__(self, element):
