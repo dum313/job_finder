@@ -155,6 +155,8 @@ async def main() -> None:
             logger.error(f"Failed to set bot commands: {e}", exc_info=True)
         
         logger.info("Telegram application started successfully")
+        # Give Telegram connection a moment to fully establish
+        await asyncio.sleep(1)
         await notify_start()
         
         # Run the job immediately on startup
